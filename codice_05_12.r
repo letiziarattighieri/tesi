@@ -334,7 +334,7 @@ print(total_counts)
 # 16   53896 2022263
 
 
-
+# load("C:/Letizia_R/script/codice_05.12.RData")
 
 
   
