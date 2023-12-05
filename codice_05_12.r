@@ -34,7 +34,7 @@ clean_name <- function(file) {
 setwd("C:/Letizia_R/layer") 
 #non so se equivale a pathfolder <- "data1" ma altrimenti non riesco a importare
 
-#importo gli ortomosaici
+#importo gli ortomosaici (con ortho mi trova le aree intere, non ho selezionato solo il transetto)
 ortho <- list.files(pattern = "ortho", 
                     full.names = TRUE)%>% 
   set_names(nm = map(., clean_name)) %>% 
@@ -45,5 +45,33 @@ buffers <- list.files(pattern = "buffer.*shp",
                       full.names = TRUE )%>% 
   set_names(nm = map(., clean_name)) %>% 
   map(~st_read(.))
+
+
+ortho<-map2(ortho, map(buffers, ~ ext(.x)), ~ crop(.x, .y))
+ortho<-map2(ortho, buffers, ~ mask(.x, .y))
+# quando ho usato questa parte di codice è uscito questo avviso, CRS è il sistema di riferimento
+
+# warnings()
+# Messaggi di avvertimento:
+# 1: [mask] CRS do not match
+# 2: [mask] CRS do not match
+# 3: [mask] CRS do not match
+# 4: [mask] CRS do not match
+# 5: [mask] CRS do not match
+# 6: [mask] CRS do not match
+# 7: [mask] CRS do not match
+# 8: [mask] CRS do not match
+# 9: [mask] CRS do not match
+# 10: [mask] CRS do not match
+# 11: [mask] CRS do not match
+# 12: [mask] CRS do not match
+# 13: [mask] CRS do not match
+# 14: [mask] CRS do not match
+# 15: [mask] CRS do not match
+# 16: [mask] CRS do not match
+
+
+
+
 
 
