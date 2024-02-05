@@ -25,7 +25,7 @@ clean_name <- function(file) {
  }
 
 pathfolder<-"C:/Letizia_R/layer"
-ortho <- list.files(pattern = "ritaglio", 
+ortho <- list.files(pattern = "ortomosaico", 
                     full.names = TRUE)%>% 
   set_names(nm = map(., clean_name)) %>% 
   map(~rast(.))
