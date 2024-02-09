@@ -41,23 +41,27 @@ buffers <- list.files(pattern = "buffer.*shp",
   set_names(nm = map(., clean_name)) %>% 
   map(~st_read(.))
 
-#
+# Orthomosaics are cropped and masked according to the corresponding buffer
 ortho<-map2(ortho, map(buffers, ~ ext(.x)), ~ crop(.x, .y))
 ortho<-map2(ortho, buffers, ~ mask(.x, .y))
 
+# Flowers
 fiori<- list.files(pattern = "fiori.*shp", full.names = TRUE)%>% 
   set_names(nm = map(., clean_name)) %>% 
   map(~st_read(.))%>% 
   map(~.[!st_is_empty(.), ])
 
+# Grass/soil
 erba<-list.files(pattern = "erba.*shp", full.names = TRUE)%>% 
   set_names(nm = map(., clean_name)) %>% 
   map(~st_read(.))%>% 
   map(~.[!st_is_empty(.), ])
 
+# Orthomosaics, flowers and grass/soil polygons are sorted alphabetically
 names(ortho) <- sort(names(ortho))
 names(fiori) <- sort(names(fiori))
 names(erba) <- sort(names(erba))
+
 
 df_fiori <- map2(ortho, fiori, ~terra::extract(.x, .y))
 df_erba <- map2(ortho, erba, ~terra::extract(.x, .y))
