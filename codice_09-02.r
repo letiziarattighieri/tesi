@@ -66,27 +66,35 @@ names(erba) <- sort(names(erba))
 df_fiori <- map2(ortho, fiori, ~terra::extract(.x, .y))
 df_erba <- map2(ortho, erba, ~terra::extract(.x, .y))
 
-
+# Column names are changed
+# Flowers
 df_fiori <- map(df_fiori, ~{
   colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
   .
 })
 
+# Grass/soil
 df_erba <- map(df_erba, ~{
   colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
   .
 })
 
+# Label which identifies the class:
+# Flowers
 df_fiori <- map(df_fiori, ~{
   .$label <- "fiore"
   .
 })
 
+# Grass/soil
 df_erba <- map(df_erba, ~{
   .$label <- "erba"
   .
 })
 
+# Bind dataframes ----------
+
+# All the dataframes are merged into a list
 df_fiori_unified <- bind_rows(df_fiori, .id = "origin")
 df_erba_unified <- bind_rows(df_erba,.id = "origin")
 
