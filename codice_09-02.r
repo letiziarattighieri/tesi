@@ -62,9 +62,10 @@ names(ortho) <- sort(names(ortho))
 names(fiori) <- sort(names(fiori))
 names(erba) <- sort(names(erba))
 
-
+# Values extraction 
 df_fiori <- map2(ortho, fiori, ~terra::extract(.x, .y))
 df_erba <- map2(ortho, erba, ~terra::extract(.x, .y))
+
 
 df_fiori <- map(df_fiori, ~{
   colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
