@@ -1,6 +1,6 @@
 #Codice al 9 febbraio. Potrei dover cambiare il nome della cartella da cui prendere i layer
 
-# Library----------
+# Libraries
 library(terra)
 library(pROC)
 library(caret)
@@ -26,7 +26,7 @@ clean_name <- function(file) {
    var_name
  }
 
-# Load data----------
+# Load data
 
 # Orthomosaics
 pathfolder<-"C:/Letizia_R/layer"
@@ -92,51 +92,63 @@ df_erba <- map(df_erba, ~{
   .
 })
 
-# Bind dataframes ----------
+# Bind dataframes 
 
 # All the dataframes are merged into a list
 df_fiori_unified <- bind_rows(df_fiori, .id = "origin")
 df_erba_unified <- bind_rows(df_erba,.id = "origin")
 
-set.seed(123)
+set.seed(123)  # To create reproducible results
 size_of_fiori <- nrow(df_fiori_unified)
+# Number of rows to sample for each group
 
+# Create a balanced sample
 df_erba_unified <- df_erba_unified %>%
   group_by(origin) %>%
   sample_n(size = size_of_fiori, replace = TRUE) %>%
   ungroup()
 
+# The dataframes are merged in a new dataframe
 df_tot <- rbind(df_fiori_unified, df_erba_unified) %>%
 rowid_to_column(.) %>%
 rename(ID_pixel = rowid)
 
+# Splitting data into train and test sets
+# Selecting the bands
+# Creation of a new dataframe with the necessary columns
 set.seed(123)
 df_selected <- dplyr::select(df_tot, banda_1, banda_2, banda_3, label)
 
+# The dataframe is splitted in training and testing sets
 data_split <- initial_split(df_selected, prop = 0.7, strata = "label")
 training_data <- training(data_split)
 test_data <- testing(data_split)
 
+# Labels are converted to factors
 training_data$label <- as.factor(training_data$label)
 test_data$label <- as.factor(test_data$label)
 
+# RF model
 train_control <- trainControl(
-method = "cv",
-number = 10,
-savePredictions = "final",
-classProbs = TRUE,
-summaryFunction = twoClassSummary
+method = "cv",                     # Cross-validation
+number = 10,                       # Number of k-fold for cross-validation
+savePredictions = "final",         # Saving final predictions for each model
+classProbs = TRUE,                 # Class probabilities are calculated
+summaryFunction = twoClassSummary  # Summary function for binary classification
 )
 
+# Tuning parameters
 tuneGrid <- expand.grid(
-mtry = c(1,2,3),
+mtry = c(1,2,3),                     # Number of features in each split
 splitrule = c("gini", "extratrees"),
-min.node.size = c(1, 3, 5)
+min.node.size = c(1, 3, 5)           # Minimum number of observations required to allow further divisions
 )
 
+# Rows with NA values are removed
 training_data <- training_data %>% na.omit()
 test_data <- test_data %>% na.omit()
 
+# 
 set.seed(123)
 RF <- train(
 label ~ .,
