@@ -113,6 +113,8 @@ df_tot <- rbind(df_fiori_unified, df_erba_unified) %>%
 rowid_to_column(.) %>%
 rename(ID_pixel = rowid)
 
+
+
 # Splitting data into train and test sets
 # Selecting the bands
 # Creation of a new dataframe with the necessary columns
@@ -127,6 +129,8 @@ test_data <- testing(data_split)
 # Labels are converted to factors
 training_data$label <- as.factor(training_data$label)
 test_data$label <- as.factor(test_data$label)
+
+
 
 # RF model
 train_control <- trainControl(
@@ -148,7 +152,7 @@ min.node.size = c(1, 3, 5)           # Minimum number of observations required t
 training_data <- training_data %>% na.omit()
 test_data <- test_data %>% na.omit()
 
-# 
+# Train the model using class weight
 set.seed(123)
 RF <- train(
 label ~ .,
@@ -156,20 +160,23 @@ data = training_data,
 method = "ranger",
 trControl = train_control,
 tuneGrid = tuneGrid,
-metric = "ROC",
+metric = "ROC",         # Model performance evaluation metric
 importance = 'impurity',
-weights = ifelse(training_data$label == "fiore", 10, 1)
+weights = ifelse(training_data$label == "fiore", 10, 1) # Handling imbalance in class distribution by assigning more importance to flower class
 )
 
 print(RF)
 
+# RF model test
 predizioni <- predict(RF, newdata= test_data)
 test_accuracy <- mean(predizioni== test_data$label)
 print(paste("Test Accuracy:", test_accuracy))
 
+# Confusion matrix
 matrice_confusione <- confusionMatrix(as.factor(predizioni), test_data$label, positive = "fiore")
 print(matrice_confusione)
 
+# Metrics analyzed to evaluate the model
 accuracy <- matrice_confusione$overall['Accuracy']
 recall <- matrice_confusione$byClass["Sensitivity"]
 f1 <- matrice_confusione$byClass["F1"]
@@ -183,16 +190,25 @@ print(paste("F1-Score: ", f1))
 print(paste("AUC-ROC: ", auc))
 print(paste("Precision: ", precision))
 
+
+
+# Overfitting evaluation
+
+# Performance comparison on training and testing sets
+# Performance is calculated on training set
 train_predictions <- predict(RF, newdata = training_data)
 train_conf_matrix <- confusionMatrix(as.factor(train_predictions), training_data$label, positive = "fiore")
 print(train_conf_matrix)
 
+
+# External cross-validation
+# k-fold cross-validation
 df_selected <- na.omit(df_selected)
 
 set.seed(123)
 cv_results <- train(
 label ~ .,
-data = df_selected,
+data = df_selected,   # Entire dataset before division
 method = "ranger",
 trControl = trainControl(
 method = "cv",
@@ -206,37 +222,71 @@ metric = "ROC"
 
 print(cv_results)
 
+# Robustness check
+
 importance <- varImp(RF)
 print(importance)
 
+# Performance comparison on different sets
 print(cv_results$results)
 
+# ROC curve (Receiver Operating Characteristic) analysis:
+# ROC curve is calculated for the test set
 test_probabilities <- predict(RF, test_data, type = "prob")
 roc_test <- roc(response = test_data$label, test_probabilities[, "fiore"])
 
+# AUC is calculated (Area Under Curve)
 plot(roc_test, main
 
 = paste("ROC Curve (AUC =", auc(roc_test), ")"))
 
 saveRDS(RF, file = "C:/Letizia_R/model_RF.rds")
 
+
+# Data preparation for classification
 ortho <- map(ortho, function(x) {
 x <- terra::subset(x, 1:3)
-names(x) <- colnames(df_selected)[1:3]
+names(x) <- colnames(df_selected)[1:3]   # Bands are renamed
 return(x)
 })
 
+# Application of model and save
 t0 <- Sys.time()
 classificazione_RF_list <- pbapply::pblapply(names(ortho), function(name) {
-terra::predict(ortho[[name]], RF, na.rm=TRUE)
+terra::predict(ortho[[name]], RF, na.rm=TRUE)  # NAs can be removed because they are in the background 
 })
 t1 <- Sys.time()
 print(t1-t0)
 
+# Names need to match
 names(classificazione_RF_list) <- names(ortho)
 
+# Classification maps are saved as .tif files
 walk(names(classificazione_RF_list), function(name) {
 terra::writeRaster(classificazione_RF_list[[name]],
 filename = paste0(name, ".tif"),
 overwrite=TRUE)
 })
+
+# Pixels for each area are counted
+
+# Function to count pixels for each category
+countCategoryPixels <- function(classification, category) {
+  sum(values(classification) == category, na.rm = TRUE)
+}
+
+# Pixels for each cateogory are counted for every orthomosaic
+results <- lapply(classificazione_RF_list, function(classification) {
+  # We assume that 1 represents the value for "flowers" and 2 for "grass"
+  count_flowers <- countCategoryPixels(classification, 2)
+  count_grass <- countCategoryPixels(classification, 1)
+  
+  return(data.frame(Flowers = count_flowers, Grass = count_grass))
+})
+
+# The results are combined to obtain the total count 
+total_counts <- do.call(rbind, results)
+row.names(total_counts) <- names(classificazione_RF_list) # Names can be added
+
+print(total_counts)
+
