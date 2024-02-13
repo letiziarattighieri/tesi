@@ -1,3 +1,5 @@
+#Codice al 9 febbraio. Potrei dover cambiare il nome della cartella da cui prendere i layer
+
 # Libraries
 library(terra)
 library(pROC)
