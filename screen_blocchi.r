@@ -80,12 +80,14 @@
 
  set.seed(123)  # To create reproducible results
  size_of_fiori <- nrow(df_fiori_unified)
+
  # Create a balanced sample
  df_erba_unified <- df_erba_unified %>%
    group_by(origin) %>%
    sample_n(size = size_of_fiori, replace = TRUE) %>%
    ungroup()
- # The dataframes are merged in a new dataframe
+
+# The dataframes are merged in a new dataframe
  df_tot <- rbind(df_fiori_unified, df_erba_unified) %>%
    rowid_to_column(.) %>%
    rename(ID_pixel = rowid)
@@ -95,11 +97,13 @@
  # Creation of a new dataframe with the necessary columns
  set.seed(123)
  df_selected <- dplyr::select(df_tot, banda_1, banda_2, banda_3, label)
- # The dataframe is splitted in training and testing sets
+
+# The dataframe is splitted in training and testing sets
  data_split <- initial_split(df_selected, prop = 0.7, strata = "label")
  training_data <- training(data_split)
  test_data <- testing(data_split)
- # Labels are converted to factors
+
+# Labels are converted to factors
  training_data$label <- as.factor(training_data$label)
  test_data$label <- as.factor(test_data$label)
 
@@ -121,7 +125,8 @@
  # Rows with NA values are removed
  training_data <- training_data %>% na.omit()
  test_data <- test_data %>% na.omit()
- # Train the model using class weight
+
+# Train the model using class weight
  set.seed(123)
  RF <- train(
    label ~ .,
@@ -134,7 +139,7 @@
    weights = ifelse(training_data$label == "fiore", 10, 1) 
  )
 
- print(RF)
+print(RF)
 Random Forest 
 
 82936 samples
@@ -218,17 +223,23 @@ Setting levels: control = erba, case = fiore
 Setting direction: controls < cases
  auc <- auc(auc_roc)
  precision <- matrice_confusione$byClass["Pos Pred Value"]
- print(paste("Accuracy: ", accuracy))
+
+print(paste("Accuracy: ", accuracy))
 [1] "Accuracy:  0.996989646635156"
- print(paste("Recall: ", recall))
+
+print(paste("Recall: ", recall))
 [1] "Recall:  0.985172263410379"
- print(paste("F1-Score: ", f1))
+
+print(paste("F1-Score: ", f1))
 [1] "F1-Score:  0.976864864864865"
- print(paste("AUC-ROC: ", auc))
+
+print(paste("AUC-ROC: ", auc))
 [1] "AUC-ROC:  0.991488420358163"
- print(paste("Precision: ", precision))
+
+print(paste("Precision: ", precision))
 [1] "Precision:  0.968696397941682"
-  Performance comparison on training and testing sets
+
+Performance comparison on training and testing sets
   Performance is calculated on training set
  train_predictions <- predict(RF, newdata = training_data)
  train_conf_matrix <- confusionMatrix(as.factor(train_predictions), 
@@ -266,7 +277,8 @@ Setting direction: controls < cases
  # External cross-validation
  # k-fold cross-validation
  df_selected <- na.omit(df_selected)
- set.seed(123)
+ 
+set.seed(123)
  cv_results <- train(
    label ~ .,
    data = df_selected, # Entire dataset before division
@@ -281,6 +293,7 @@ Setting direction: controls < cases
    metric = "ROC"
  )
  print(cv_results)
+
 Random Forest 
 
 118480 samples
@@ -322,7 +335,8 @@ ranger variable importance
 banda_2  100.00
 banda_1   74.52
 banda_3    0.00
- # Performance comparison on different sets
+
+# Performance comparison on different sets
  print(cv_results$results)
    mtry  splitrule min.node.size       ROC      Sens      Spec        ROCSD       SensSD      SpecSD
 1     1       gini             1 0.9998387 0.9988296 0.9743406 7.245556e-05 0.0003819692 0.004682773
@@ -343,26 +357,30 @@ banda_3    0.00
 16    3 extratrees             1 0.9996656 0.9988206 0.9735307 3.383669e-04 0.0004124694 0.004282645
 17    3 extratrees             3 0.9997311 0.9988026 0.9739359 2.996401e-04 0.0004329083 0.003930252
 18    3 extratrees             5 0.9998009 0.9987846 0.9750160 2.288607e-04 0.0004009562 0.004092528
- # ROC curve (Receiver Operating Characteristic) analysis:
+
+# ROC curve (Receiver Operating Characteristic) analysis:
  # ROC curve is calculated for the test set
  test_probabilities <- predict(RF, test_data, type = "prob")
  roc_test <- roc(response = test_data$label, 
                  test_probabilities[, "fiore"])
 Setting levels: control = erba, case = fiore
 Setting direction: controls < cases
- # AUC is calculated (Area Under Curve)
+
+# AUC is calculated (Area Under Curve)
  plot(roc_test, main
       
       = paste("ROC Curve (AUC =", auc(roc_test), ")"))
  saveRDS(RF, file = "C:/Letizia_R/model_RF_noFR3_19.02.rds")
- # Data preparation for classification
+
+# Data preparation for classification
  ortho <- map(ortho, function(x) {
    x <- terra::subset(x, 1:3)
    names(x) <- colnames(df_selected)[1:3]  
    # Bands are renamed
    return(x)
  })
- # Application of model and save
+
+# Application of model and save
  t0 <- Sys.time()
  classificazione_RF_list <- pbapply::pblapply(names(ortho), 
                                               function(name) {
@@ -370,13 +388,16 @@ Setting direction: controls < cases
                                               })
   |+++++++++++++++++++++++++++++++++++++             | 73% ~06m 58s      Aggregating predictions.. Progress: 71%. Estimated remaining time: 12 seconds.
   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed=24m 40s
- # NAs can be removed because they are in the background 
+ 
+# NAs can be removed because they are in the background 
  t1 <- Sys.time()
  print(t1-t0)
 Time difference of 24.77929 mins
- # Names need to match
+
+# Names need to match
  names(classificazione_RF_list) <- names(ortho)
- # Classification maps are saved as .tif files
+
+# Classification maps are saved as .tif files
  walk(names(classificazione_RF_list), function(name) {
    terra::writeRaster(classificazione_RF_list[[name]],
                       filename = paste0(name, ".tif"),
@@ -389,7 +410,8 @@ Time difference of 24.77929 mins
  }
  # Pixels for each cateogory are counted for every orthomosaic
  results <- lapply(classificazione_RF_list, function(classification) {
-   # We assume that 1 represents the value for "flowers" and 2 for "grass"
+ 
+  # We assume that 1 represents the value for "flowers" and 2 for "grass"
    count_flowers <- countCategoryPixels(classification, 2)
    count_grass <- countCategoryPixels(classification, 1)
    
