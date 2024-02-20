@@ -189,8 +189,8 @@ The final values used for the model were mtry = 1, splitrule = extratrees and mi
 
          Confusion Matrix and Statistics
 
-                    Reference
-          Prediction  erba fiore
+                       Reference
+         Prediction   erba fiore
                erba  33178    34
               fiore     73  2259
                                           
@@ -249,8 +249,8 @@ Performance comparison on training and testing sets
 
        Confusion Matrix and Statistics
 
-                    Reference
-        Prediction  erba fiore
+                     Reference
+       Prediction   erba fiore
              erba  77780     0
             fiore     44  5112
                                           
