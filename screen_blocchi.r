@@ -181,6 +181,7 @@ The final values used for the model were mtry = 1, splitrule = extratrees and mi
                                        positive = "fiore")
 
  print(matrice_confusione)
+
          Confusion Matrix and Statistics
 
                     Reference
@@ -234,6 +235,7 @@ Setting direction: controls < cases
                                       training_data$label, 
                                       positive = "fiore")
  print(train_conf_matrix)
+
        Confusion Matrix and Statistics
 
                     Reference
@@ -397,13 +399,13 @@ Time difference of 24.77929 mins
  total_counts <- do.call(rbind, results)
  row.names(total_counts) <- names(classificazione_RF_list) 
  print(total_counts)
+
           Flowers   Grass
 ortho_el1    9820 1742698
 ortho_ey1   48617 2009711
 ortho_ey2   53778 2159928
 ortho_ey3   30054 2996974
 ortho_fr2   18901 2925149
-
 ortho_gu4  153698 3637926
 ortho_pa2   14195 4573350
 ortho_ra2   44730 4787726
