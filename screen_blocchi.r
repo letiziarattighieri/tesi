@@ -181,12 +181,12 @@ The final values used for the model were mtry = 1, splitrule = extratrees and mi
                                        positive = "fiore")
 
  print(matrice_confusione)
-Confusion Matrix and Statistics
+         Confusion Matrix and Statistics
 
-          Reference
-Prediction  erba fiore
-     erba  33178    34
-     fiore    73  2259
+                    Reference
+          Prediction  erba fiore
+               erba  33178    34
+              fiore     73  2259
                                           
                Accuracy : 0.997           
                  95% CI : (0.9964, 0.9975)
@@ -234,12 +234,12 @@ Setting direction: controls < cases
                                       training_data$label, 
                                       positive = "fiore")
  print(train_conf_matrix)
-Confusion Matrix and Statistics
+       Confusion Matrix and Statistics
 
-          Reference
-Prediction  erba fiore
-     erba  77780     0
-     fiore    44  5112
+                    Reference
+        Prediction  erba fiore
+             erba  77780     0
+            fiore     44  5112
                                           
                Accuracy : 0.9995          
                  95% CI : (0.9993, 0.9996)
