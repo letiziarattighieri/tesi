@@ -359,12 +359,13 @@ The final values used for the model were mtry = 1, splitrule = extratrees and mi
 +                                       test_data$label, 
 +                                       positive = "fiore")
 > print(matrice_confusione)
-Confusion Matrix and Statistics
+       
+        Confusion Matrix and Statistics
 
-          Reference
-Prediction  erba fiore
-     erba  35587    59
-     fiore    61  2186
+                    Reference
+            Prediction  erba fiore
+                 erba  35587    59
+                 fiore    61  2186
                                           
                Accuracy : 0.9968          
                  95% CI : (0.9962, 0.9974)
@@ -412,12 +413,13 @@ Setting direction: controls < cases
 +                                      training_data$label, 
 +                                      positive = "fiore")
 > print(train_conf_matrix)
-Confusion Matrix and Statistics
 
-          Reference
-Prediction  erba fiore
-     erba  83183     0
-     fiore    49  5185
+        Confusion Matrix and Statistics
+
+                    Reference
+            Prediction  erba fiore
+                 erba  83183     0
+                 fiore    49  5185
                                           
                Accuracy : 0.9994          
                  95% CI : (0.9993, 0.9996)
@@ -576,7 +578,10 @@ Time difference of 1.102771 hours
 > # The results are combined to obtain the total count 
 > total_counts <- do.call(rbind, results)
 > row.names(total_counts) <- names(classificazione_RF_list) 
+
+
 > print(total_counts)
+
           Flowers   Grass
 ortho_el1    9028 1743490
 ortho_ey1   50389 2007939
